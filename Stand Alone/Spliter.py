@@ -8,5 +8,3 @@ def spliter(origin, destination, size):
         with open(destination + '/' + str(i) + '.txt', 'w', encoding="utf8") as file:
             for j in range(len(words) - size):
                 file.write(' '.join(words[j:j + size]) + '\n')
-
-spliter('fake.txt', 'Results', 50)
