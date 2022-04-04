@@ -1,0 +1,12 @@
+Expand | Collapse 
+(Photo: 
+(left)
+(right)
+(center)
+(L)
+(R)
+(C)
+(l)
+(r)
+(c)
+/>
