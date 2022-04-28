@@ -33,7 +33,7 @@ model.to(device)
 print(device)
 
 ds = pd.DataFrame({'text':[], 'prediction':[], 'label':[]})
-with alive_bar(len(labels), dual_line=True, title='Generating Dataset') as bar:
+with alive_bar(len(labels), title='Generating Dataset') as bar:
   for i in range(len(labels)):
     bar.text = f'-> Analizing news N {i}, please wait...'
     words = data[i].split(' ')
