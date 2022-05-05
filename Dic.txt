@@ -1,5 +1,5 @@
 Dataset A -> Dataset formado pelo FNC 0 e 1, utilizado para treinar os algoritmos intermediários
 Dataset B -> Dataset formado pelo FNC 2, utilizado para a criação das janelas que serão analisados pelos algoritmos intermediários
-Algoritmos Intermediários* -> "conselho" de algoritmos que julgam uma janela como parte de uma notícia verdadeira ou falsa. A nota do “conselho” é utilizada em conjunto com as própria janela para o treinamento do algoritmo final
+Algoritmos Intermediários* -> "conselho" de algoritmos que julgam uma janela como parte de uma notícia verdadeira ou falsa. A nota do “conselho” é utilizada em conjunto com as próprias janela para o treinamento do algoritmo final
 Janelas -> Conjunto contínuo de palavras de uma notícia contendo n palavras. Utilizadas em conjunto com as notas dos algoritmos intermediários para o treinamento do algoritmo final
 Algoritmo Final -> Algoritmo de regressão que identifica o melhor trecho para a identificação da validade de uma notícia 
