@@ -7,7 +7,7 @@ import time
 
 start = time.time()
 
-dataset = open('../../CSVs/datasetA.csv', 'r',
+dataset = open('CSVs/datasetA.csv', 'r',
                encoding="utf8").read().split('\n')
 
 for i in range(len(dataset)):
@@ -44,17 +44,12 @@ gsSVC = GridSearchCV(svc, svcParams, scoring='f1_macro', cv=5)
 
 rfc = RandomForestClassifier()
 rfcParams = {'n_estimators': [100, 200, 500],
-             'criteion': ['gini', 'entropy'],
+             'criterion': ['gini', 'entropy'],
              'min_samples_split': [50, 100],
              'min_samples_leaf': [50, 100],
              'max_features': ['auto']}
 gsRFC = GridSearchCV(rfc, rfcParams, scoring='f1_macro', cv=5)
 
-
-gsMLPC.fit(X, labels)
-print('Best params MLPC:\n' + str(gsMLPC.best_params_) + '\n')
-gsSVC.fit(X, labels)
-print('Best params SVC: \n' + str(gsSVC.best_params_) + '\n')
 gsRFC.fit(X, labels)
 print('Best params RFC: \n' + str(gsRFC.best_params_) + '\n')
 
