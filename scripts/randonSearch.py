@@ -20,7 +20,7 @@ X = vectorizer.fit_transform(data)
 
 rfc = RandomForestClassifier()
 rfcParams = {'n_estimators': [100, 200, 500],
-             'criteion': ['gini', 'entropy'],
+             'criterion': ['gini', 'entropy'],
              'min_samples_split': [2, 5, 10, 20, 50, 100],
              'min_samples_leaf': [1, 2, 5, 10, 20, 50, 100],
              'max_features': ['auto', 'sqrt', 'log2'],
