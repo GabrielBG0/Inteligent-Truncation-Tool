@@ -1,5 +1,14 @@
 Best params MLPC:
 {'alpha': 0.001, 'hidden_layer_sizes': (100, 100, 100), 'learning_rate': 'invscaling', 'learning_rate_init': 0.01, 'max_iter': 1000}
+Best score MLPC:  
+0.932890385172511
 
 Best params SVC:
 {'C': 10, 'degree': 3, 'gamma': 1, 'kernel': 'sigmoid'}
+Best score SVC:   
+0.8942228509304296
+
+Best params RFC:
+{'criterion': 'gini', 'max_features': 'auto', 'min_samples_leaf': 50, 'min_samples_split': 50, 'n_estimators': 100}
+Best score RFC:
+0.46926097403739087

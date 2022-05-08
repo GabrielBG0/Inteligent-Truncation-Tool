@@ -1,4 +1,4 @@
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
@@ -26,31 +26,31 @@ X = vectorizer.fit_transform(data)
 # MLP, SVM, Random Forest
 
 mlpc = MLPClassifier()
-mlpcParams = {'hidden_layer_sizes': [(100,), (100, 100), (100, 100, 100)],
-              'alpha': [0.0001, 0.001, 0.01],
-              'learning_rate': ['constant', 'invscaling', 'adaptive'],
-              'learning_rate_init': [0.001, 0.01],
-              'max_iter': [1000]}
+mlpcParams = {'alpha': [0.001], 'hidden_layer_sizes': [(
+    100, 100, 100)], 'learning_rate': ['invscaling'], 'learning_rate_init': [0.01], 'max_iter': [1000]}
 gsMLPC = GridSearchCV(mlpc, mlpcParams, scoring='f1_macro', cv=5)
 
 
 svc = SVC()
-svcParams = {'C': [0.1, 1, 10, 100],
-             'gamma': [0.001, 0.01, 0.1, 1],
-             'kernel': ['linear', 'rbf', 'sigmoid'],
-             'degree': [3, 4, 5]}
+svcParams = {'C': [10], 'degree': [3], 'gamma': [1], 'kernel': ['sigmoid']}
 gsSVC = GridSearchCV(svc, svcParams, scoring='f1_macro', cv=5)
 
 
 rfc = RandomForestClassifier()
-rfcParams = {'n_estimators': [100, 200, 500],
-             'criterion': ['gini', 'entropy'],
-             'min_samples_split': [50, 100],
-             'min_samples_leaf': [50, 100],
-             'max_features': ['auto']}
+rfcParams = {'criterion': ['gini'], 'max_features': ['auto'],
+             'min_samples_leaf': [50], 'min_samples_split': [50], 'n_estimators': [100]}
 gsRFC = GridSearchCV(rfc, rfcParams, scoring='f1_macro', cv=5)
 
+gsMLPC.fit(X, labels)
+print('Best params RFC: \n' + str(gsMLPC.best_params_) + '\n')
+print('Best score RFC: \n' + str(gsMLPC.best_score_) + '\n')
+
+gsSVC.fit(X, labels)
+print('Best params RFC: \n' + str(gsSVC.best_params_) + '\n')
+print('Best score RFC: \n' + str(gsSVC.best_score_) + '\n')
+
 gsRFC.fit(X, labels)
-print('Best params RFC: \n' + str(gsRFC.best_params_) + '\n')
+print('Best params RFC: \n' + str(gsRFC.best_params_))
+print('Best score RFC: \n' + str(gsRFC.best_score_) + '\n')
 
 print('Time: ' + str(((time.time() - start) / 60) / 60) + ' hours')
