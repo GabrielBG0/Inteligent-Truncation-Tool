@@ -3,4 +3,5 @@ Algorithms/fake-news-heatmap-creator
 Algorithms/onnx.zip
 dataset_predictions.csv
 new_dataset_predictions.csv
+dataset_predictionsInt.csv
 algos/

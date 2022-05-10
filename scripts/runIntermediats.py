@@ -36,17 +36,17 @@ for i in range(len(labels)):
     windows = []
     for j in range(len(words) - SIZE):
         windows.append(' '.join(words[j:j + SIZE]))
-    predictionsMLPC = mlpc.predict(vectorizer.transform(windows))
-    predictionsSVC = svc.predict(vectorizer.transform(windows))
-    predictionsRFC = rfc.predict(vectorizer.transform(windows))
+    vec = vectorizer.transform(windows)
+    predictionsMLPC = mlpc.predict(vec)
+    predictionsSVC = svc.predict(vec)
+    predictionsRFC = rfc.predict(vec)
     ds = pd.concat([ds, pd.DataFrame({
         'text': windows,
         'predictionsMLPC': predictionsMLPC,
         'predictionsSVC': predictionsSVC,
         'predictionsRFC': predictionsRFC,
         'label': [int(labels[i])]*len(windows)
-    })
-    ])
+    })])
 
 ds.to_csv('dataset_predictionsInt.csv', index=False)
 
