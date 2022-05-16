@@ -27,8 +27,8 @@ dataset.pop(-1)
 data = [i[0] for i in dataset]
 labels = [i[1] for i in dataset]
 
-ds = pd.DataFrame({'text': [], 'predictionsMLPC': [],
-                  'predictionsSVC': [], 'predictionsRFC': [], 'label': []})
+ds = pd.DataFrame({'text': [], 'MLPC': [],
+                  'SVC': [], 'RFC': [], 'label': []})
 
 for i in range(len(labels)):
     words = data[i].split(' ')
@@ -42,12 +42,12 @@ for i in range(len(labels)):
     predictionsRFC = rfc.predict(vec)
     ds = pd.concat([ds, pd.DataFrame({
         'text': windows,
-        'predictionsMLPC': predictionsMLPC,
-        'predictionsSVC': predictionsSVC,
-        'predictionsRFC': predictionsRFC,
+        'MLPC': predictionsMLPC,
+        'SVC': predictionsSVC,
+        'RFC': predictionsRFC,
         'label': [int(labels[i])]*len(windows)
     })])
 
-ds.to_csv('dataset_predictionsInt.csv', index=False)
+ds.to_csv('dataset_predictionsInt.csv', index=False, sep='§')
 
 print('Time: ' + str(((time.time() - start) / 60) / 60) + ' hours')
