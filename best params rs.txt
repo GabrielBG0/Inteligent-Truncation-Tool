@@ -1,0 +1,13 @@
+ds = pd.read_csv('dataset_predictionsIntScore_sample.csv', sep='§').sample(20000)
+
+Best params MLPR:
+{'tol': 0.01, 'max_iter': 1000, 'learning_rate_init': 0.1, 'learning_rate': 'invscaling', 'hidden_layer_sizes': (100, 100, 100), 'alpha': 0.001}
+Best score MLPR:
+0.4085365260231136
+
+Best params SVR:
+{'shrinking': False, 'kernel': 'poly', 'gamma': 1, 'degree': 3, 'coef0': 0.4, 'C': 1}
+Best score SVR:
+0.48329934843682315
+
+Time elapsed: 33.02872225642204 hours
