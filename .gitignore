@@ -7,3 +7,5 @@ dataset_predictionsInt.csv
 dataset_predictionsIntScore.csv
 algos/
 CSVs/
+FakeNewsNetCSV/
+*.sav
