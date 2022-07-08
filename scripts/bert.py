@@ -5,6 +5,10 @@ from torch.utils.data import DataLoader
 import torch
 import copy
 from transformers import BertTokenizerFast
+import warnings
+
+
+warnings.filterwarnings('ignore')
 
 
 MAX_TRAIN_LENTH = 128
@@ -123,34 +127,37 @@ def truncate(encodings, method="h", max_len=512, p_heads=0.5, p_tails=0.5):
     return aux
 
 
-train_texts_ds = pd.read_csv('FakeNewsNetCSV/test_texts.csv')
-val_texts_ds = pd.read_csv('FakeNewsNetCSV/val_texts.csv')
-test_texts_ds = pd.read_csv('FakeNewsNetCSV/test_texts.csv')
+train_texts_ds = pd.read_csv('../FakeNewsNetCSV/train_texts.csv')
+test_texts_ds = pd.read_csv('../FakeNewsNetCSV/test_texts.csv')
 
 train_labels = train_texts_ds['label'].values.tolist()
-val_labels = val_texts_ds['label'].values.tolist()
 test_labels = test_texts_ds['label'].values.tolist()
 
 train_texts = train_texts_ds['text'].values.tolist()
-val_texts = val_texts_ds['text'].values.tolist()
 test_texts = test_texts_ds['text'].values.tolist()
 
 tokenizer = BertTokenizerFast.from_pretrained("bert-base-uncased")
 
-train_encodings = tokenizer(train_texts, padding=False, verbose=False)
-val_encodings = tokenizer(val_texts, padding=False, verbose=False)
+train_labels_vec = []
+train_encodings_vec = []
+t_len = len(train_texts)
+
+for i in range(5):
+    if i != 4:
+        train_encodings_vec.append(
+            tokenizer(train_texts[i * int(t_len / 5):(i + 1) * int(t_len / 5)], padding=False, verbose=False))
+        train_labels_vec.append(
+            train_labels[i * int(t_len / 5):(i + 1) * int(t_len / 5)])
+    else:
+        train_encodings_vec.append(
+            tokenizer(train_texts[i * int(t_len / 5):], padding=False, verbose=False))
+        train_labels_vec.append(
+            train_labels[i * int(t_len / 5):])
+
 test_encodings = tokenizer(test_texts, padding=False, verbose=False)
 
 print('Starting Tails Trainig...')
-
-train_encodings_t = truncate(
-    train_encodings, method="t", max_len=MAX_TRAIN_LENTH)
-val_encodings_t = truncate(val_encodings, method="t", max_len=512)
-test_encodings_t = truncate(test_encodings, method="t", max_len=512)
-
-train_dataset = FNNDataset(train_encodings_t, train_labels)
-val_dataset = FNNDataset(train_encodings_t, val_labels)
-test_dataset = FNNDataset(train_encodings_t, test_labels)
+# 1
 
 device = torch.device(
     'cuda') if torch.cuda.is_available() else torch.device('cpu')
@@ -158,24 +165,35 @@ device = torch.device(
 model = BertForSequenceClassification.from_pretrained('bert-base-uncased')
 model.to(device)
 
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-val_dataloader = DataLoader(val_dataset, batch_size=16)
-test_dataloader = DataLoader(test_dataset, batch_size=16)
-
 optim = AdamW(model.parameters(), lr=5e-5)
 
-for epoch in range(16):
-    model.train()
-    for batch in train_loader:
-        optim.zero_grad()
-        input_ids = batch['input_ids'].to(device)
-        attention_mask = batch['attention_mask'].to(device)
-        labels = batch['labels'].to(device)
-        outputs = model(
-            input_ids, attention_mask=attention_mask, labels=labels)
-        loss = outputs[0]
-        loss.backward()
-        optim.step()
+test_encodings_t = truncate(test_encodings, method="t", max_len=512)
+
+test_dataset = FNNDataset(test_encodings_t, test_labels)
+
+test_dataloader = DataLoader(test_dataset, batch_size=16)
+
+for train_encodings in train_encodings_vec:
+
+    train_encodings_t = truncate(
+        train_encodings, method="t", max_len=MAX_TRAIN_LENTH)
+
+    train_dataset = FNNDataset(train_encodings_t, train_labels)
+
+    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+
+    for epoch in range(16):
+        model.train()
+        for batch in train_loader:
+            optim.zero_grad()
+            input_ids = batch['input_ids'].to(device)
+            attention_mask = batch['attention_mask'].to(device)
+            labels = batch['labels'].to(device)
+            outputs = model(
+                input_ids, attention_mask=attention_mask, labels=labels)
+            loss = outputs[0]
+            loss.backward()
+            optim.step()
 
 model.eval()
 
@@ -190,40 +208,40 @@ for statistic in whantedStatistics:
 
 print('')
 print('Starting Heads Traning...')
-
-train_encodings_t = truncate(
-    train_encodings, method="h", max_len=MAX_TRAIN_LENTH)
-val_encodings_t = truncate(val_encodings, method="h", max_len=512)
-test_encodings_t = truncate(test_encodings, method="h", max_len=512)
-
-train_dataset = FNNDataset(train_encodings_t, train_labels)
-val_dataset = FNNDataset(train_encodings_t, val_labels)
-test_dataset = FNNDataset(train_encodings_t, test_labels)
-
-device = torch.device(
-    'cuda') if torch.cuda.is_available() else torch.device('cpu')
+# 2
 
 model = BertForSequenceClassification.from_pretrained('bert-base-uncased')
 model.to(device)
 
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-val_dataloader = DataLoader(val_dataset, batch_size=16)
-test_dataloader = DataLoader(test_dataset, batch_size=16)
-
 optim = AdamW(model.parameters(), lr=5e-5)
 
-for epoch in range(16):
-    model.train()
-    for batch in train_loader:
-        optim.zero_grad()
-        input_ids = batch['input_ids'].to(device)
-        attention_mask = batch['attention_mask'].to(device)
-        labels = batch['labels'].to(device)
-        outputs = model(
-            input_ids, attention_mask=attention_mask, labels=labels)
-        loss = outputs[0]
-        loss.backward()
-        optim.step()
+test_encodings_t = truncate(test_encodings, method="h", max_len=512)
+
+test_dataset = FNNDataset(train_encodings_t, test_labels)
+
+test_dataloader = DataLoader(test_dataset, batch_size=16)
+
+for train_encodings in train_encodings_vec:
+
+    train_encodings_t = truncate(
+        train_encodings, method="h", max_len=MAX_TRAIN_LENTH)
+
+    train_dataset = FNNDataset(train_encodings_t, train_labels)
+
+    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+
+    for epoch in range(16):
+        model.train()
+        for batch in train_loader:
+            optim.zero_grad()
+            input_ids = batch['input_ids'].to(device)
+            attention_mask = batch['attention_mask'].to(device)
+            labels = batch['labels'].to(device)
+            outputs = model(
+                input_ids, attention_mask=attention_mask, labels=labels)
+            loss = outputs[0]
+            loss.backward()
+            optim.step()
 
 model.eval()
 
@@ -238,42 +256,40 @@ for statistic in whantedStatistics:
 
 print('')
 print('Starting H&T 0.25/0.75 Traning...')
-
-train_encodings_t = truncate(
-    train_encodings, method="ht", max_len=MAX_TRAIN_LENTH, p_heads=0.25, p_tails=0.75)
-val_encodings_t = truncate(val_encodings, method="ht",
-                           max_len=512, p_heads=0.25, p_tails=0.75)
-test_encodings_t = truncate(
-    test_encodings, method="ht", max_len=512, p_heads=0.25, p_tails=0.75)
-
-train_dataset = FNNDataset(train_encodings_t, train_labels)
-val_dataset = FNNDataset(train_encodings_t, val_labels)
-test_dataset = FNNDataset(train_encodings_t, test_labels)
-
-device = torch.device(
-    'cuda') if torch.cuda.is_available() else torch.device('cpu')
+# 3
 
 model = BertForSequenceClassification.from_pretrained('bert-base-uncased')
 model.to(device)
-
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-val_dataloader = DataLoader(val_dataset, batch_size=16)
-test_dataloader = DataLoader(test_dataset, batch_size=16)
-
 optim = AdamW(model.parameters(), lr=5e-5)
 
-for epoch in range(16):
-    model.train()
-    for batch in train_loader:
-        optim.zero_grad()
-        input_ids = batch['input_ids'].to(device)
-        attention_mask = batch['attention_mask'].to(device)
-        labels = batch['labels'].to(device)
-        outputs = model(
-            input_ids, attention_mask=attention_mask, labels=labels)
-        loss = outputs[0]
-        loss.backward()
-        optim.step()
+test_encodings_t = truncate(
+    test_encodings, method="ht", max_len=512, p_heads=0.25, p_tails=0.75)
+
+test_dataset = FNNDataset(train_encodings_t, test_labels)
+
+test_dataloader = DataLoader(test_dataset, batch_size=16)
+
+for train_encodings in train_encodings_vec:
+
+    train_encodings_t = truncate(
+        train_encodings, method="ht", max_len=MAX_TRAIN_LENTH, p_heads=0.25, p_tails=0.75)
+
+    train_dataset = FNNDataset(train_encodings_t, train_labels)
+
+    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+
+    for epoch in range(16):
+        model.train()
+        for batch in train_loader:
+            optim.zero_grad()
+            input_ids = batch['input_ids'].to(device)
+            attention_mask = batch['attention_mask'].to(device)
+            labels = batch['labels'].to(device)
+            outputs = model(
+                input_ids, attention_mask=attention_mask, labels=labels)
+            loss = outputs[0]
+            loss.backward()
+            optim.step()
 
 model.eval()
 
@@ -288,42 +304,41 @@ for statistic in whantedStatistics:
 
 print('')
 print('Starting H&T 0.5/0.5 Traning...')
-
-train_encodings_t = truncate(
-    train_encodings, method="ht", max_len=MAX_TRAIN_LENTH, p_heads=0.5, p_tails=0.5)
-val_encodings_t = truncate(val_encodings, method="ht",
-                           max_len=512, p_heads=0.25, p_tails=0.75)
-test_encodings_t = truncate(
-    test_encodings, method="ht", max_len=512, p_heads=0.25, p_tails=0.75)
-
-train_dataset = FNNDataset(train_encodings_t, train_labels)
-val_dataset = FNNDataset(train_encodings_t, val_labels)
-test_dataset = FNNDataset(train_encodings_t, test_labels)
-
-device = torch.device(
-    'cuda') if torch.cuda.is_available() else torch.device('cpu')
+# 4
 
 model = BertForSequenceClassification.from_pretrained('bert-base-uncased')
 model.to(device)
 
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-val_dataloader = DataLoader(val_dataset, batch_size=16)
-test_dataloader = DataLoader(test_dataset, batch_size=16)
-
 optim = AdamW(model.parameters(), lr=5e-5)
 
-for epoch in range(16):
-    model.train()
-    for batch in train_loader:
-        optim.zero_grad()
-        input_ids = batch['input_ids'].to(device)
-        attention_mask = batch['attention_mask'].to(device)
-        labels = batch['labels'].to(device)
-        outputs = model(
-            input_ids, attention_mask=attention_mask, labels=labels)
-        loss = outputs[0]
-        loss.backward()
-        optim.step()
+test_encodings_t = truncate(
+    test_encodings, method="ht", max_len=512, p_heads=0.25, p_tails=0.75)
+
+test_dataset = FNNDataset(train_encodings_t, test_labels)
+
+test_dataloader = DataLoader(test_dataset, batch_size=16)
+
+for train_encodings in train_encodings_vec:
+
+    train_encodings_t = truncate(
+        train_encodings, method="ht", max_len=MAX_TRAIN_LENTH, p_heads=0.5, p_tails=0.5)
+
+    train_dataset = FNNDataset(train_encodings_t, train_labels)
+
+    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+
+    for epoch in range(16):
+        model.train()
+        for batch in train_loader:
+            optim.zero_grad()
+            input_ids = batch['input_ids'].to(device)
+            attention_mask = batch['attention_mask'].to(device)
+            labels = batch['labels'].to(device)
+            outputs = model(
+                input_ids, attention_mask=attention_mask, labels=labels)
+            loss = outputs[0]
+            loss.backward()
+            optim.step()
 
 model.eval()
 
@@ -339,42 +354,41 @@ for statistic in whantedStatistics:
 print('')
 
 print('Starting H&T 0.75/0.25 Traning...')
-
-train_encodings_t = truncate(
-    train_encodings, method="ht", max_len=MAX_TRAIN_LENTH, p_heads=0.75, p_tails=0.25)
-val_encodings_t = truncate(val_encodings, method="ht",
-                           max_len=512, p_heads=0.25, p_tails=0.75)
-test_encodings_t = truncate(
-    test_encodings, method="ht", max_len=512, p_heads=0.25, p_tails=0.75)
-
-train_dataset = FNNDataset(train_encodings_t, train_labels)
-val_dataset = FNNDataset(train_encodings_t, val_labels)
-test_dataset = FNNDataset(train_encodings_t, test_labels)
-
-device = torch.device(
-    'cuda') if torch.cuda.is_available() else torch.device('cpu')
+# 5
 
 model = BertForSequenceClassification.from_pretrained('bert-base-uncased')
 model.to(device)
 
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-val_dataloader = DataLoader(val_dataset, batch_size=16)
-test_dataloader = DataLoader(test_dataset, batch_size=16)
-
 optim = AdamW(model.parameters(), lr=5e-5)
 
-for epoch in range(16):
-    model.train()
-    for batch in train_loader:
-        optim.zero_grad()
-        input_ids = batch['input_ids'].to(device)
-        attention_mask = batch['attention_mask'].to(device)
-        labels = batch['labels'].to(device)
-        outputs = model(
-            input_ids, attention_mask=attention_mask, labels=labels)
-        loss = outputs[0]
-        loss.backward()
-        optim.step()
+test_encodings_t = truncate(
+    test_encodings, method="ht", max_len=512, p_heads=0.25, p_tails=0.75)
+
+test_dataset = FNNDataset(train_encodings_t, test_labels)
+
+test_dataloader = DataLoader(test_dataset, batch_size=16)
+
+for train_encodings in train_encodings_vec:
+
+    train_encodings_t = truncate(
+        train_encodings, method="ht", max_len=MAX_TRAIN_LENTH, p_heads=0.75, p_tails=0.25)
+
+    train_dataset = FNNDataset(train_encodings_t, train_labels)
+
+    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+
+    for epoch in range(16):
+        model.train()
+        for batch in train_loader:
+            optim.zero_grad()
+            input_ids = batch['input_ids'].to(device)
+            attention_mask = batch['attention_mask'].to(device)
+            labels = batch['labels'].to(device)
+            outputs = model(
+                input_ids, attention_mask=attention_mask, labels=labels)
+            loss = outputs[0]
+            loss.backward()
+            optim.step()
 
 model.eval()
 
